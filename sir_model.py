@@ -1,4 +1,5 @@
 import numpy as np
+from scipy.optimize import fsolve
 
 
 def mu(b, I, mu0, mu1):
@@ -40,7 +41,49 @@ def h(I, mu0, mu1, beta, A, d, nu, b):
     c3 = d*(beta-nu)
     res = c0 + c1 * I + c2 * I**2 + c3 * I**3
     return res
+
+def I2(mu0, mu1, beta, A, d, nu, b):
+    d0 = d + nu + mu0
+    d1 = d + nu + mu1
+    A_ = d0 * (beta - nu)
+    B_ = (d0 - beta) * A + (beta - nu) * d1 * b
+    delta0_ = (beta - nu)**2 * d1**2 * b**2 - 2*A*(beta - nu) * ( beta*(mu1-mu0) + d0*(d1-beta))*b + A*A*(beta-d0)**2
+    return (-B_ + np.sqrt(delta0_)) / 2 / A_
+
+def I_star(mu0, mu1, beta, A, d, nu, b):
+    A_ = (d + nu + mu0) * (beta - nu)
+    B_ = (d + nu + mu0 - beta) * A + (beta - nu) * (d + nu + mu1) * b
+    return - B_ / 2 / A_
+
+def hopf_bif_func(b, mu0, mu1, beta, A, d, nu):
+    """
+    Function used to find a Hopf bifurcation on the SIR model.
+    This bifurcation happens with these parameters if this function returns 0.
+
+    Args:
+        b (scalar): number of beds per 10,000 persons
+        ...
+
+    Returns:
+        scalar: difference between h's highest zero and I_2
+    """
     
+    # Check that th 4.4's hypothesis are respected 
+    if not (mu1 - mu0 - 2*d)*A / (beta - nu) / d > 0:
+        raise ValueError("not valid parameters for th 4.4")
+    if not mu1 - mu0 - 4*d > 0:
+        raise ValueError("not valid parameters for th 4.4")
+    
+    # computes the point I_2
+    i2 = I2(mu0, mu1, beta, A, d, nu, b)
+    # h_ is the function h: I -> h(i)
+    h_ = lambda i: h(i, mu0, mu1, beta, A, d, nu, b)
+    
+    # Get the zeros of h(I), which determine the type of bifurcation in case I2 or I_star are equal to one of the zeros.
+    # In the context of the exercice, it is reasonable to give [0.0, 0.05] as initial points
+    # in a more general manner, it could be benificial to do a first study of h, knowing it is a 3rd degree polynomial...
+    _, hM = fsolve(h_, [0.0, 0.05])
+    return hM - i2
 
 def model(y, mu0 = 10.0, mu1=10.45, beta=11.5, A=20, d=0.1, nu=1.0, b=0.022):
     """

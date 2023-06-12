@@ -49,38 +49,4 @@ def plot_phase_portrait(A, X, Y):
     ax0.set_aspect(1)
     return ax0
 
-def bif_vis(bs3, SIR_0, ts):
-    """
-    Plot 3 figs of the infected against the susceptibles numbers, with varying 'b'
-
-    Parameters
-    -------
-    bs3
-        a list of 3 values for b
-    SIR_0
-        initial state of the SIR model
-    ts
-        np.array of time evenly spaced
-    """
-    _, axs = plt.subplots(1, 3, figsize=(15, 5), sharex=True, sharey=True)
-    for i in range(3):
-        SIR_model = lambda y: model(y, b = bs3[i])
-        yt, _ = solve_scipy(SIR_model, SIR_0, ts)
-        axs[i].plot(yt[0, :], yt[1, :], c='red', label="SI(time)")
-        axs[i].set_title(f"b={bs3[i]:.3f}")
-        axs[i].set_xlabel("Susceptibles")
-        axs[i].set_ylabel("Infected")
-        axs[i].legend()
-
-        """
-        X = np.linspace(yt[:, 0].min(), yt[:, 0].max(), 100)
-        Y = np.linspace(yt[:, 1].min(), yt[:, 1].max(), 100)
-        Z = np.linspace(yt[:, 2].min(), yt[:, 2].max(), 100)
-
-        grid = np.meshgrid(X, Y, Z)
-
-        U, V, _ = SIR_model(np.array(grid))
-        axs[i].streamplot(grid[0][:, :, 50], grid[1][:, :, 50], U[:, :, 50], V[:, :, 50], density=[0.5, 0.5])
-        """
-
 
